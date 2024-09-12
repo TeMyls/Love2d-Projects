@@ -116,12 +116,13 @@ function Player:draw()
   end]]--
 --if self.single_tile_input or self.mouse_tile_input then
   local boxx, boxy = self:world_to_array2d(self.mx, self.my) 
+  local boxx, boxy = self:array2d_to_world(boxx, boxy)
   --local boxx = math.floor((self.mx/(level_width * TILESIZE)) * (level_width)) * TILESIZE
   --local boxy = math.floor((self.my/(level_height * TILESIZE)) * (level_height)) * TILESIZE
   
   love.graphics.rectangle("line",
-    (boxx - 1 ) * TILESIZE,
-    (boxy - 1 ) * TILESIZE,
+    boxx,
+    boxy,
     TILESIZE,
     TILESIZE)
 --end
