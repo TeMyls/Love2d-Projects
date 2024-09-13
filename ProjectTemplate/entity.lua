@@ -526,11 +526,9 @@ function Entity:follow_target(a_vector,dt)
       self.velocity.x = lume.lerp(self.velocity.x, 
                                   a_cosx *  self.move_speed, 
                                   self.acceleration)
-      self.velocity.x = lume.lerp(self.velocity.x, 
-                                  a_cosx *  self.move_speed, 
+      self.velocity.y = lume.lerp(self.velocity.y, 
+                                  a_siny *  self.move_speed, 
                                   self.acceleration)
-      self.velocity.x = self.move_speed * a_cosx
-      self.velocity.y = self.move_speed * a_siny
     end
   else
     self.velocity.y = lume.lerp(self.velocity.y, 
