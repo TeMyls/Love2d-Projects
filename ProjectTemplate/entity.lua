@@ -1,12 +1,6 @@
 local Object = require("lib.classic")
-Vector2 = require "lib.hump.vector"
-require "unitconverter"
---lume = require "lib.lume"
---flux = require "lib.flux"
+
 Entity = Object.extend(Object)
-
-
-
 
 function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,group)
   
@@ -19,7 +13,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   self.friction = 1
   self.acceleration = 1
 
-  self.mini = 0.0001
+
   --either rectangle, circle, or lines
   self.shape = ""
   self.lines = {}
@@ -27,7 +21,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   
  
     
-  --quad position
+  --quad positions
   self.qx = quad_x 
   self.qy = quad_y 
  
@@ -38,6 +32,8 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
     self.img = love.graphics.newImage(img)
     self.quad = love.graphics.newQuad(self.qx,self.qy,self.dimension.x,self.dimension.y,self.img)
   end
+
+
   self.hp = hp 
   --tile based stuff
   self.tile_path = {}
@@ -60,13 +56,13 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   self.mouse_tile_input = false
   self.button_tile_input = false
   self.plaforming = false
-  self.grounded = true
+  self.grounded = false
 
   --animation without anim8
   --t is time to next frame qx and qy are the startinf quads
   self.sample_anim = {t = .125, qx = 0, qy = 0, ot = .125, oqx = 0, oqy = 0, f = 4, name = "walk"}
   self.frame_size = nil
-
+  
  
   --orientation
   --flipx and flipy
@@ -82,8 +78,20 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   
   
   --movement code
-  self.jump_height = -100
-  self.gravity = -400
+  self.jump_height = 48
+  self.jump_time_to_peak = 0.5
+  self.jump_time_to_descent = 0.3
+
+  local jv = ((2.0 * self.jump_height)/ self.jump_time_to_peak) * -1.0
+  local jg = ((-2.0 * self.jump_height)/ (self.jump_time_to_peak*self.jump_time_to_peak)) * -1.0
+  local fg = ((-2.0 * self.jump_height)/ (self.jump_time_to_descent*self.jump_time_to_descent)) * -1.0
+
+  self.jump_velocity = jv
+  self.jump_gravity =  jg
+  self.fall_gravity = fg
+
+
+  self.last_y = 0
   self.rotation_speed = 300
   self.move_speed = 150
   
@@ -133,13 +141,10 @@ function Entity:world_to_array2d(x,y)
 end
 
 function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
-  --?protag[1].x = lume.round((protag[1].x/(level_width * TILESIZE)) * (level_width)) * TILESIZE
-  --protag[1].y = lume.round((protag[1].y/(level_height * TILESIZE)) * (level_height)) * TILESIZE
-
+  
+  self.mouse_tile_input = true
   local in_bounds = false
   --real world coordinates getting translated into array coords
-
- 
   local start_cell_x, start_cell_y = self:world_to_array2d(self.position.x, self.position.y)
   local end_cell_x,end_cell_y = self:world_to_array2d(self.mx, self.my)
   local player_tile = 9
@@ -155,11 +160,11 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
       --in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
       in_bounds = end_cell_x <= level_width and end_cell_x > 0 and end_cell_y <= level_height and end_cell_y > 0
       
-    --[[
-    elseif #self.tile_path > 0 
-    and not self.canceled_path then
-      
-      self.canceled_path = true]]--
+      --[[
+      elseif #self.tile_path > 0 
+      and not self.canceled_path then
+        
+        self.canceled_path = true]]--
     end
   end
 
@@ -168,13 +173,17 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
     if in_bounds then
     --and start_cell_x ~= end_cell_x 
     --and start_cell_y ~= end_cell_y  then
+
       
       local myFinder = Pathfinder(Grid(level), 'ASTAR', walkable_tile)
       local path = myFinder:getPath(start_cell_x, start_cell_y, end_cell_x, end_cell_y)
       --myFinder:setMode('ORTHOGONAL')
-    --if start_cell_x ~= end_cell_x 
-    --and start_cell_y ~= end_cell_y 
-    --and not protag[1].canceled_path then
+
+
+
+      --if start_cell_x ~= end_cell_x 
+      --and start_cell_y ~= end_cell_y 
+      --and not protag[1].canceled_path then
       if path then
         
         
@@ -240,14 +249,12 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
     
   end
 flux.update(dt)
-  --else
-    --lume.clear(protag[1].tile_path)
-  --end
+
   
 end
 
 function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_tile)
-  
+  self.button_tile_input = true
 
 
   local up = {love.keyboard.isDown('up','w'), {x = 0, y = -1}}
@@ -433,13 +440,6 @@ end
 
 
 
-
-
-
-
-
-
-
 function Entity:timer(time_to, dt)
   time_to = time_to - dt
   if time_to <= 0  then
@@ -489,10 +489,6 @@ function Entity:update_line_angle(dt)
   self.line.x2 = self.position.x + self.dimension.x/2 + self.line.length*self.cos
   self.line.y2 = self.position.y + self.dimension.y/2 + self.line.length*self.sin
 end
-
-
-
-
 
 
 function Entity:follow_target(a_vector,dt)
@@ -579,8 +575,7 @@ function Entity:tank_movement(dt)
   local back_x = math.cos(degrees_to_radians(self.angle - 180))
   
   if up then
-    --self.velocity.x = -self.mini
-    --self.velocity.y = -self.mini
+
     --applying acceleration
     self.velocity.y = lume.lerp(self.velocity.y, 
                                 foward_y * self.move_speed, 
@@ -592,8 +587,7 @@ function Entity:tank_movement(dt)
 
     
   elseif down then
-    --self.velocity.x = -self.mini
-    --self.velocity.y = -self.mini
+
     self.velocity.y = lume.lerp(self.velocity.y, 
                                 back_y * self.move_speed, 
                                 self.acceleration)
@@ -602,6 +596,7 @@ function Entity:tank_movement(dt)
                                 back_x * self.move_speed, 
                                 self.acceleration)
   else
+    --applying friction
     self.velocity.y = lume.lerp(self.velocity.y, 
                                 0, 
                                 self.friction)
@@ -630,20 +625,20 @@ function Entity:topdown_2d_movement(dt)
 
   if up then
     self.direction.y = -1
-    --self.velocity.y = -self.mini
+    
   elseif down then
     self.direction.y = 1
-    --self.velocity.y = self.mini
+   
   else
     self.direction.y = 0
   end
   
   if left then
     self.direction.x = -1
-    --self.velocity.x = -self.mini
+    
   elseif right then
     self.direction.x = 1
-    --self.velocity.x = -self.mini
+    
   else
     self.direction.x = 0
   end
@@ -684,22 +679,22 @@ function Entity:topdown_2d_movement(dt)
 end
 
 function Entity:platformer_2d_movement(dt)
-  
+  local up = love.keyboard.isDown('up','w')
   local right = love.keyboard.isDown('right','d')
   local left = love.keyboard.isDown('left','a')
   --keyboard movement
- 
+  self.plaforming = true
   
   if left then
     self.direction.x = -1
-    --self.velocity.x = -self.mini
+   
   elseif right then
     self.direction.x = 1
-    --self.velocity.x = -self.mini
+    
   else
     self.direction.x = 0
   end
-  self.direction:normalizeInplace()
+  
   
   --if acceleration or friction is set to one it will immediately start and stop
   if self.direction.x ~= 0 then
@@ -714,52 +709,24 @@ function Entity:platformer_2d_movement(dt)
                                 0, 
                                 self.friction)
   end
-  
-  self:collide(dt)
-end
 
-function Entity:apply_stop()
-  self.velocity = Vector2(0, 0)
-end
+    ---jumping
+    --a non-variable one would just be velocity=jump velocity and 
 
-function Entity:apply_gravity(dt)
-  --print("vx: "..tostring(self.vx))
-  
-  if self.velocity.y ~= 0 then
-    --self.y = self.y + self.vy --* dt
-    self.velocity.y = self.velocity.y - self.gravity * dt
-  end
-  
-  
-  if self.velocity.y > self.terminal_velocity  then
-    self.velocity.y = self.terminal_velocity
-  end
-
-end
-
-function Entity:apply_friction(dt)
-  
-  if self.velocity.x > .0001 or self.velocity.x < -.0001  then
-    self.velocity.x = self.velocity.x * (1-math.min(dt * self.friction,1))
-  end
-end
-
-function Entity:sample_jump()
-      ---jumping
-    --a non-variable one would just be vy=jump height and 
-
-    if self.grounded == true 
-    and self.velocity.y == self.mini then 
-      if love.keyboard.isDown('x') then
-        self.vy = self.jump_height
+    if self.grounded then 
+      if up then
+        self.velocity.y = self.jump_velocity
         self.grounded = false
-        
       end
     end 
+
     
+
+    
+    --[[
     if self.vy ~= tiny then
       self.is_grounded = false
-    end
+    end]]--
     
     
     --if not love.keyboard.isDown('x') then
@@ -784,58 +751,68 @@ function Entity:sample_jump()
     --else
       --self.jump_counter = self.jump_segments
     --end
-    
-end
-
-function Entity:sample_acceleration(dt)
-   if love.keyboard.isDown('left') then
-      --cancels momentum from previous movement
-      
-      
-      if self.velocity.x > 0 then
-        self.velocity.x = -50
-      end
-      self.velocity.x = math.min(self.velocity.x - self.acceleration * dt)
-      self.flipx = -1
-      --self.anim = self.animations.roll
-     
-          
-    elseif love.keyboard.isDown('right') 
-    then
-      --cancels momentum from previous movement
-     
-      if self.velocity.x < 0 then
-        self.velocity.x = 50
-      end
-      self.velocity.x = math.min(self.velocity.x + self.acceleration * dt)
-      self.flipx = 1
-      
- 
-    else
-      --immediately stops upon key release
-      self.velocity.x = 0
-    end
+  self:apply_gravity(dt)
+  self:collide(dt)
 end
 
 
+function Entity:get_gravity()
+  if self.velocity.y ~= 0 then
+    return self.jump_gravity 
+  else
+    return 1
+  end
+end
 
---without his function nothing moves
+function Entity:apply_gravity(dt)
+  --print("vx: "..tostring(self.vx))
+  
+  if self.grounded == false then
+    --self.y = self.y + self.vy --* dt
+    self.velocity.y = self.velocity.y + self:get_gravity() * dt
+  end
+  
+  
+  if self.velocity.y > self.terminal_velocity  then
+    self.velocity.y = self.terminal_velocity
+  end
+
+end
+
+
+--without his function nothing that isn't tile-based moves
 function Entity:collide(dt)
-  --[[
-  if self.velocity.x < self.mini or self.velocity.x > -self.mini  then
-    self.velocity.x = 0
-  end
-  if self.velocity.y < self.mini or self.velocity.y > -self.mini  then
-    self.velocity.y = 0
-  end
-  ]]--
   
   --the actually collision code for the library used for the world
+  self.last_y = self.position.y
   local x,y,vx,vy= self.position.x,self.position.y,self.velocity.x,self.velocity.y
+
   local futureX =  x + vx * dt
   local futureY =  y + vy * dt
   local nextX,nextY,cols,len = world:move(self,futureX,futureY)
+  if self.plaforming then
+    for i = 1 , len do
+      local col = cols[i]
+      local kind = col.other.class
+       if col.normal.y == -1  then
   
+        self.grounded = true
+        self.velocity.y = 0
+      
+      
+      end
+      if col.normal.y == 1  then
+  
+        
+        self.velocity.y = 0
+      
+      
+      end
+      
+
+    end
+  end
+
   self.position.x = nextX
   self.position.y = nextY
 end
