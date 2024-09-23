@@ -800,11 +800,22 @@ function Entity:collide(dt)
         self.velocity.y = 0
       
       
+     
       end
       if col.normal.y == 1  then
   
         
         self.velocity.y = 0
+      
+      
+      
+      end
+
+      if col.normal.y ~= -1  then
+  
+        
+        self.grounded = false
+      
       
       
       end

@@ -53,9 +53,9 @@ function Player:update(dt)
   --self:tank_movement(dt)
   --self:topdown_2d_movement(dt)
   --self:follow_target(mouse_vector,dt)
-  --self:platformer_2d_movement(dt)
+  self:platformer_2d_movement(dt)
   --self:continuous_tile_button_movement(dt,self.walkable_tile,self.unreachable_tile)
-  self:continuous_tile_mouse_movement(dt,self.walkable_tile)
+  --self:continuous_tile_mouse_movement(dt,self.walkable_tile)
 
   
   
