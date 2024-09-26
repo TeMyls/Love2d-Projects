@@ -11,8 +11,7 @@ local vertices = {}
 
 local camera = require "camera"
 local lume = require 'lume'
-
-
+local matrix = require("matrix")
 
 local camera_zoom_factor = 1
 local cam =  camera()
@@ -116,10 +115,10 @@ function move_texture_pos(dt)
   end
 
   if left_click or right_click then
-        local origin_matrix = translate_origin_2d(self.texture_position.x, self.texture_position.y)
-        local matrix_origin = translate_origin_2d(-self.texture_position.x, -self.texture_position.y)
-        local xy = {}
-        local rotation_matrix = xy_rotate2d_cw(degrees_to_radians(prev_angle - self.angle))
+      
+        local origin_matrix = translation_matrix2D(-self.texture_position.x, -self.texture_position.y)
+        local matrix_origin = translation_matrix2D(self.texture_position.x, self.texture_position.y)
+        local rotation_matrix = rotation_matrix2D(degrees_to_radians(prev_angle - self.angle))
         for i = 1, #self.display_position, 2 do
             
             --if i%2 == 0 then
@@ -138,7 +137,7 @@ function move_texture_pos(dt)
             local temp_matrix =  {
                 {translate_matrix[1][1]},
                 {translate_matrix[2][1]},
-                    
+                {1}
             }
 
             temp_matrix = matrix_multiply(temp_matrix, rotation_matrix)
@@ -157,7 +156,7 @@ function move_texture_pos(dt)
             
             self.display_position[i] = temp_matrix[1][1]
             self.display_position[i + 1] = temp_matrix[2][1] 
-
+            
 
 
         end
@@ -167,53 +166,53 @@ function move_texture_pos(dt)
     
     
     if up then
-        self.direction.y = -1
-        --self.velocity.y = -self.mini
-      elseif down then
-        self.direction.y = 1
-        --self.velocity.y = self.mini
-      else
-        self.direction.y = 0
-      end
-      
-      if left then
-        self.direction.x = -1
-        --self.velocity.x = -self.mini
-      elseif right then
-        self.direction.x = 1
-        --self.velocity.x = -self.mini
-      else
-        self.direction.x = 0
-      end
-      
-      local normalizer = math.sqrt(self.direction.x ^ 2 + self.direction.y ^ 2)
-      --if acceleration or friction is set to one it will immediately start and stop
-      if self.direction.x ~= 0 then
-        --applying acceleration
-        
-
-        self.velocity.x = lume.lerp(self.velocity.x, 
-                                    self.direction.x/normalizer * self.move_speed, 
-                                    self.acceleration)
-      else 
-        --applying friction
-        self.velocity.x = lume.lerp(self.velocity.x, 
-                                    0, 
-                                    self.friction)
-      end
+      self.direction.y = -1
+      --self.velocity.y = -self.mini
+    elseif down then
+      self.direction.y = 1
+      --self.velocity.y = self.mini
+    else
+      self.direction.y = 0
+    end
     
-      if self.direction.y ~= 0 then
-        --applying acceleration
-        
-        self.velocity.y = lume.lerp(self.velocity.y, 
-                                    self.direction.y/normalizer *  self.move_speed, 
-                                    self.acceleration)
-      else 
-        --applying friction
-        self.velocity.y = lume.lerp(self.velocity.y, 
-                                    0, 
-                                    self.friction)
-      end
+    if left then
+      self.direction.x = -1
+      --self.velocity.x = -self.mini
+    elseif right then
+      self.direction.x = 1
+      --self.velocity.x = -self.mini
+    else
+      self.direction.x = 0
+    end
+    
+    local normalizer = math.sqrt(self.direction.x ^ 2 + self.direction.y ^ 2)
+    --if acceleration or friction is set to one it will immediately start and stop
+    if self.direction.x ~= 0 then
+      --applying acceleration
+      
+
+      self.velocity.x = lume.lerp(self.velocity.x, 
+                                  self.direction.x/normalizer * self.move_speed, 
+                                  self.acceleration)
+    else 
+      --applying friction
+      self.velocity.x = lume.lerp(self.velocity.x, 
+                                  0, 
+                                  self.friction)
+    end
+  
+    if self.direction.y ~= 0 then
+      --applying acceleration
+      
+      self.velocity.y = lume.lerp(self.velocity.y, 
+                                  self.direction.y/normalizer *  self.move_speed, 
+                                  self.acceleration)
+    else 
+      --applying friction
+      self.velocity.y = lume.lerp(self.velocity.y, 
+                                  0, 
+                                  self.friction)
+    end
   
 
   --the actually collision code for the library used for the world
@@ -230,7 +229,29 @@ end
 
 
 function love.load()
-    
+    local testa = matrix({
+      {1},
+      {2},
+      {3}
+
+    })
+
+    local testb = matrix({
+
+      {6, 6, 2}
+
+    })
+   
+    --testb = matrix.transpose(testb)
+
+    local result = matrix.mul(testa, testb)
+    matrix.print(testa)
+    print("")
+    matrix.print(testb)
+    print("")
+    matrix.print(matrix:new(3,3,8))
+
+
     for i = 0, 3 do
         local vert_x = self.texture_position.x + self.box_dimensions.w * math.cos(degrees_to_radians(45 + 90 * i))
         local vert_y = self.texture_position.y + self.box_dimensions.h * math.sin(degrees_to_radians(45 + 90 * i))
