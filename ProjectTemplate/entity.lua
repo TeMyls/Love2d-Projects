@@ -80,7 +80,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   --movement code
   self.jump_height = 48
   self.jump_time_to_peak = 0.5
-  self.jump_time_to_descent = 0.3
+  self.jump_time_to_descent = 0.8
 
   local jv = ((2.0 * self.jump_height)/ self.jump_time_to_peak) * -1.0
   local jg = ((-2.0 * self.jump_height)/ (self.jump_time_to_peak*self.jump_time_to_peak)) * -1.0
@@ -101,7 +101,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   
   
   --terminal velocity
-  self.terminal_velocity = 300
+  self.terminal_velocity = fg * 1.5
   
   --classifcation
   if in_world == true 
@@ -124,8 +124,6 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   }
   
 end
-
-
 
 
 function Entity:array2d_to_world(x,y)
@@ -438,8 +436,6 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     --protag[1].y = cur_y
 end
 
-
-
 function Entity:timer(time_to, dt)
   time_to = time_to - dt
   if time_to <= 0  then
@@ -477,7 +473,6 @@ function Entity:animate(dt,anim_array)
     )
   
 end
-
 
 function Entity:update_line_angle(dt)
   --shows the actually line the players pointing in
@@ -679,6 +674,7 @@ function Entity:topdown_2d_movement(dt)
 end
 
 function Entity:platformer_2d_movement(dt)
+  --https://www.youtube.com/watch?v=IOe1aGY6hXA
   local up = love.keyboard.isDown('up','w')
   local right = love.keyboard.isDown('right','d')
   local left = love.keyboard.isDown('left','a')
@@ -696,6 +692,7 @@ function Entity:platformer_2d_movement(dt)
   end
   
   
+  
   --if acceleration or friction is set to one it will immediately start and stop
   if self.direction.x ~= 0 then
     --applying acceleration
@@ -710,15 +707,21 @@ function Entity:platformer_2d_movement(dt)
                                 self.friction)
   end
 
-    ---jumping
-    --a non-variable one would just be velocity=jump velocity and 
+  --applying gravity
+  self.velocity.y = self.velocity.y  + self:get_gravity() * dt
+  if self.velocity.y > self.terminal_velocity  then
+    self.velocity.y = self.terminal_velocity
+  end
 
-    if self.grounded then 
-      if up then
-        self.velocity.y = self.jump_velocity
-        self.grounded = false
-      end
-    end 
+  ---jumping
+  --a non-variable one would just be velocity=jump velocity and 
+
+  if self.grounded then 
+    if up then
+      self.velocity.y = self.jump_velocity
+      self.grounded = false
+    end
+  end 
 
     
 
@@ -751,16 +754,16 @@ function Entity:platformer_2d_movement(dt)
     --else
       --self.jump_counter = self.jump_segments
     --end
-  self:apply_gravity(dt)
+  
   self:collide(dt)
 end
 
 
 function Entity:get_gravity()
-  if self.velocity.y ~= 0 then
+  if self.velocity.y < 0.0 then
     return self.jump_gravity 
   else
-    return 1
+    return self.fall_gravity
   end
 end
 
@@ -769,13 +772,11 @@ function Entity:apply_gravity(dt)
   
   if self.grounded == false then
     --self.y = self.y + self.vy --* dt
-    self.velocity.y = self.velocity.y + self:get_gravity() * dt
+    self.velocity.y = self.velocity.y + self:get_gravity() --* dt
   end
   
   
-  if self.velocity.y > self.terminal_velocity  then
-    self.velocity.y = self.terminal_velocity
-  end
+  
 
 end
 
