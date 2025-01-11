@@ -1,8 +1,9 @@
 require "matrixmath"
+require "matrix_math"
 
-screen_width = love.graphics.getWidth()
-screen_height = love.graphics.getHeight()
-local vertices = {}
+local screen_width = love.graphics.getWidth()
+local screen_height = love.graphics.getHeight()
+
 
 --libraries
 --HUMP's camera and lume
@@ -30,9 +31,11 @@ self = {
     velocity = {x = 0, y = 0},
     friction = 1,
     move_speed = 200,
+    --the player position 
     texture_position = {x = screen_width/2, y = screen_width/2},
     box_dimensions = {w = 170, h = 70},
-    display_position = {},
+    --box polygon
+    box_vertices = {},
     acceleration = 1,
     direction = {x = 0, y = 0}
 
@@ -75,18 +78,18 @@ end
 
 function print_rect_vertices()
     if not has_printed then
-        for i, v in pairs(self.display_position) do
-            if i < #self.display_position then
+        for i, v in pairs(self.box_vertices) do
+            if i < #self.box_vertices then
                 
-                print("\nX: " .. tostring(self.display_position[i]) .. " Y: " .. tostring(self.display_position[i + 1]))
+                print("\nX: " .. tostring(self.box_vertices[i]) .. " Y: " .. tostring(self.box_vertices[i + 1]))
             end
         end
-        print(tostring(#self.display_position))
+        print(tostring(#self.box_vertices))
         has_printed = true
     end
 end
 
-function move_texture_pos(dt)
+function move_texture_pos(dt, using_tables)
   --move the actual pixel position inside the texture 
 
   local up = love.keyboard.isDown('up','w')
@@ -115,52 +118,43 @@ function move_texture_pos(dt)
   end
 
   if left_click or right_click then
-      
+      if using_tables == true then
         local origin_matrix = translation_matrix2D(-self.texture_position.x, -self.texture_position.y)
         local matrix_origin = translation_matrix2D(self.texture_position.x, self.texture_position.y)
         local rotation_matrix = rotation_matrix2D(degrees_to_radians(prev_angle - self.angle))
-        for i = 1, #self.display_position, 2 do
-            
-            --if i%2 == 0 then
-            --table.insert(xy,self.display_position[i]) 
-            local translate_matrix = matrix_multiply(origin_matrix,
-                {
-                    {self.display_position[i]},
-                    {self.display_position[i + 1]},
-                    {1}
-                }
         
-            )
+        for i = 1, #self.box_vertices, 2 do
+          
+          local x, y = self.box_vertices[i],self.box_vertices[i + 1] 
+          --making origin centric
+          local translate_matrix = matrix_multiply(origin_matrix, set_matrix2D(x, y))
+          --applying transformation
+          local matrix_rotated = matrix_multiply(translate_matrix, rotation_matrix)
+          --moving back to original position
+          local matrix_translate = matrix_multiply(
+              matrix_rotated,
+              matrix_origin
+              
+          
+          )
 
-            
-
-            local temp_matrix =  {
-                {translate_matrix[1][1]},
-                {translate_matrix[2][1]},
-                {1}
-            }
-
-            temp_matrix = matrix_multiply(temp_matrix, rotation_matrix)
-
-            temp_matrix = matrix_multiply(
-                {
-                    {temp_matrix[1][1]},
-                    {temp_matrix[2][1]},
-                    {1}
-                },
-                matrix_origin
-                
-            
-            )
-
-            
-            self.display_position[i] = temp_matrix[1][1]
-            self.display_position[i + 1] = temp_matrix[2][1] 
-            
-
+          self.box_vertices[i], self.box_vertices[i + 1] = get_2D_vertices(matrix_translate)
 
         end
-
+        
+      else
+        local angle_change = degrees_to_radians(prev_angle - self.angle)
+        for i = 1, #self.box_vertices, 2 do
+            local tx, ty = self.texture_position.x, self.texture_position.y
+            local x, y = self.box_vertices[i], self.box_vertices[i + 1]
+            --making origin centric
+            x, y = translate_2D(-tx, -ty, x, y)
+            --applying transformation
+            x, y = rotate_2D(angle_change, x, y)
+            --moving back to original position
+            self.box_vertices[i], self.box_vertices[i + 1] = translate_2D(tx, ty, x, y)
+        end
+      end
     
     end
     
@@ -229,6 +223,7 @@ end
 
 
 function love.load()
+  --[[
     local testa = matrix({
       {1},
       {2},
@@ -250,13 +245,13 @@ function love.load()
     matrix.print(testb)
     print("")
     matrix.print(matrix:new(3,3,8))
-
-
+    ]]--
+    --creating the box around the player
     for i = 0, 3 do
         local vert_x = self.texture_position.x + self.box_dimensions.w * math.cos(degrees_to_radians(45 + 90 * i))
         local vert_y = self.texture_position.y + self.box_dimensions.h * math.sin(degrees_to_radians(45 + 90 * i))
-        table.insert(self.display_position, vert_x) 
-        table.insert(self.display_position, vert_y) 
+        table.insert(self.box_vertices, vert_x) 
+        table.insert(self.box_vertices, vert_y) 
 
     end
 
@@ -266,7 +261,7 @@ function love.update(dt)
     mx,my = cam:worldCoords(love.mouse.getPosition())
     cam:lookAt(self.texture_position.x,self.texture_position.y)
     delta = dt
-    move_texture_pos(dt)
+    move_texture_pos(dt, true)
     if love.keyboard.isDown("space") then
         space_pressed = true
     else
@@ -286,13 +281,13 @@ function love.draw()
 
 
    cam:attach()
-        for i, v in ipairs(self.display_position) do
-            table.insert(vertices, self.display_position[i])
+        --for i, v in ipairs(self.box_vertices) do
+            --table.insert(vertices, self.box_vertices[i])
            
-        end
+        --end
         love.graphics.circle("line",self.texture_position.x,self.texture_position.y,5)
-        love.graphics.polygon("line", vertices)
-        vertices = lume.clear(vertices)
+        love.graphics.polygon("line", self.box_vertices)
+        --vertices = lume.clear(vertices)
    cam:detach()
 
 
