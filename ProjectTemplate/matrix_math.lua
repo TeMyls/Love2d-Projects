@@ -41,7 +41,7 @@ end
 function reflect_2D(rx, ry, x, y)
     local _x = x * rx
     local _y = y * ry
-    return x, y 
+    return _x, _y
 end
 
 function scale_3D(sx, sy, sz, x, y, z)
