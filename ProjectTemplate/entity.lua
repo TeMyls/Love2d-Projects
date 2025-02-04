@@ -445,8 +445,8 @@ function Entity:timer(time_to, dt)
   end
 end
 
-function Entity:animate(dt,anim_array)
-  
+function Entity:animate(dt,anim_array, quad, dir)
+  dir = dir or 1
   
   
   if anim_array.f ~= 1 then
@@ -457,7 +457,7 @@ function Entity:animate(dt,anim_array)
         
         
         
-      anim_array.qx = anim_array.qx + 1 
+      anim_array.qx = anim_array.qx + 1 * dir
       anim_array.t = anim_array.ot
       if anim_array.qx == anim_array.f then
         anim_array.qx = anim_array.oqx
@@ -465,7 +465,7 @@ function Entity:animate(dt,anim_array)
       end
       
   end
-  self.quad:setViewport(
+  quad:setViewport(
     self.frame_size * anim_array.qx,
     self.frame_size * anim_array.qy,
     self.frame_size,
