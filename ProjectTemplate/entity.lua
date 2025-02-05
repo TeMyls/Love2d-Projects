@@ -494,20 +494,16 @@ function Entity:follow_target(a_vector,dt)
     
   --distance between the two objects
     
-    local HorDiz = a_vector.x - self.position.x + (self.dimension.x/2)
-    local VertDiz = a_vector.y - self.position.y + (self.dimension.y/2)
+
     --local angle = math.atan2(mouse_y - (self.y+self.h/2),mouse_x - (self.x+self.w/2))
     --local angle = mouse_vector:angleTo(self.position + (self.dimension * 0.5))
     --self.position.x + (self.dimension.x/2)
     local angle = lume.angle(self.position.x + (self.dimension.x/2),self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y)
     self.angle = radians_to_degrees(angle)
     
-    local a = HorDiz ^ 2
-    local b = VertDiz ^ 2
+
     
-    local c = a + b
-    
-    if c > 5 then
+    if not point_circle(self.position.x + (self.dimension.x/2), self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y, 10) then
  
 
       
