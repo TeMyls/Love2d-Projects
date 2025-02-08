@@ -115,6 +115,16 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   end
   
   
+  self.hitbox = {
+    self.position.x                   , self.position.y, 
+    self.position.x                   , self.position.y + self.dimension.y,
+    
+    self.position.x + self.dimension.x, self.position.y + self.dimension.y,
+    self.position.x + self.dimension.x,  self.position.y
+  
+  
+}
+
   self.line = {
     x1 = 0,
     y1 = 0,
@@ -490,7 +500,7 @@ function Entity:follow_target(a_vector,dt)
   --mouse movement
   
 
-  if love.mouse.isDown(1) then
+  
     
   --distance between the two objects
     
@@ -516,7 +526,7 @@ function Entity:follow_target(a_vector,dt)
       self.velocity.y = lume.lerp(self.velocity.y, 
                                   a_siny *  self.move_speed, 
                                   self.acceleration)
-    end
+   
   else
     self.velocity.y = lume.lerp(self.velocity.y, 
                                 0, 
