@@ -8,5 +8,6 @@
 * Flamendless' ![GUI](https://github.com/flamendless/Slab) library.</br>
 * Kikito's ![animation](https://github.com/kikito/anim8), ![camera](https://github.com/kikito/gamera), ![collision](https://github.com/kikito/bump.lua) libraries.</br>
 
+Also thank's to Jeffrey Thompson's ![blog](https://www.jeffreythompson.org/collision-detection/) on collision detection in helping me write utils.lua, as before it multiple stackoverflow threads had to be visited.</br>
 
 
