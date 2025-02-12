@@ -54,11 +54,12 @@ function Player:update(dt)
     --self:topdown_2d_movement(dt)
   
     --self:platformer_2d_movement(dt)
-    --self:continuous_tile_button_movement(dt,self.walkable_tile,self.unreachable_tile)
+    self:continuous_tile_button_movement(dt,self.walkable_tile,self.unreachable_tile)
     --self:continuous_tile_mouse_movement(dt,self.walkable_tile)
-    if love.mouse.isDown(1) then
-      self:follow_target(mouse_vector,dt)
-    end
+    --if love.mouse.isDown(1) then
+      --self:follow_target(mouse_vector,dt)
+    --end
+    self:update_hitbox_position()
     
 end
 
@@ -68,7 +69,7 @@ end
 
 
 function Player:draw()
-
+  
   --self:draw_line()
 
   --if self.single_tile_input or self.mouse_tile_input then

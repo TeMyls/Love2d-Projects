@@ -1,9 +1,27 @@
-local Object = require("lib.classic")
 
+
+local angle_convert = require "angle_convert"
+local transformer = require "transformer"
+local collider = require "collider"
+local raycast = require "raycast"
+--other libraries
+local bump = require 'lib.bump'
+
+local world = bump.newWorld()
+
+local Grid = require ("lib.jumper.grid")
+local Pathfinder = require ("lib.jumper.pathfinder")
+
+local Object = require("lib.classic")
 Entity = Object.extend(Object)
 
 function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,group)
-  
+  --helpers
+  self.transformer = transformer:new()
+  self.collider = collider:new()
+  self.raycast = raycast:new()
+  self.angle_convert = angle_convert:new()
+
   --general
   self.position = Vector2(position_table.x, position_table.y)
   self.velocity = Vector2(0, 0)
@@ -18,7 +36,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   self.shape = ""
   self.lines = {}
 
-  
+ 
  
     
   --quad positions
@@ -137,15 +155,15 @@ end
 
 
 function Entity:array2d_to_world(x,y)
-  local x = (x - 1) * TILESIZE
-  local y = (y - 1) * TILESIZE
-  return x , y
+  local _x = (x - 1) * TILESIZE
+  local _y = (y - 1) * TILESIZE
+  return _x , _y
 end
 
 function Entity:world_to_array2d(x,y)
-  local x = math.floor(((x/true_level_width) * level_width)) + 1
-  local y = math.floor(((y/true_level_height) * level_height)) + 1
-  return x , y
+  local _x = math.floor(((x/WORLD_LEVEL_WIDTH) * LEVEL_WIDTH)) + 1
+  local _y = math.floor(((y/WORLD_LEVEL_HEIGHT) * LEVEL_HEIGHT)) + 1
+  return _x , _y
 end
 
 function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
@@ -165,8 +183,8 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
       
 
       
-      --in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
-      in_bounds = end_cell_x <= level_width and end_cell_x > 0 and end_cell_y <= level_height and end_cell_y > 0
+      --in_bounds = next_x <= WORLD_LEVEL_WIDTH and next_x >= 0 and next_y <= WORLD_LEVEL_HEIGHT and next_y >= 0
+      in_bounds = end_cell_x <= LEVEL_WIDTH and end_cell_x > 0 and end_cell_y <= LEVEL_HEIGHT and end_cell_y > 0
       
       --[[
       elseif #self.tile_path > 0 
@@ -183,7 +201,7 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
     --and start_cell_y ~= end_cell_y  then
 
       
-      local myFinder = Pathfinder(Grid(level), 'ASTAR', walkable_tile)
+      local myFinder = Pathfinder(Grid(LEVEL), 'ASTAR', walkable_tile)
       local path = myFinder:getPath(start_cell_x, start_cell_y, end_cell_x, end_cell_y)
       --myFinder:setMode('ORTHOGONAL')
 
@@ -209,14 +227,14 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
         flux.to(self.position, self.og_tween_time, {x = new_coords[1], y = new_coords[2]}):oncomplete(function () 
       
 
-          self.position.x = lume.round((self.position.x/(level_width * TILESIZE)) * (level_width)) * TILESIZE
-          self.position.y = lume.round((self.position.y/(level_height * TILESIZE)) * (level_height)) * TILESIZE
-          level[prev_array_y][prev_array_x] = walkable_tile
+          self.position.x = lume.round((self.position.x/(LEVEL_WIDTH * TILESIZE)) * (LEVEL_WIDTH)) * TILESIZE
+          self.position.y = lume.round((self.position.y/(LEVEL_HEIGHT * TILESIZE)) * (LEVEL_HEIGHT)) * TILESIZE
+          LEVEL[prev_array_y][prev_array_x] = walkable_tile
       
           local current_array_x, current_array_y = self:world_to_array2d(self.position.x,self.position.y)
           
 
-          level[current_array_y][current_array_x] = player_tile
+          LEVEL[current_array_y][current_array_x] = player_tile
         end)
         
       end
@@ -233,22 +251,22 @@ function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
         flux.to(self.position, self.og_tween_time, {x = new_coords[1], y = new_coords[2]}):oncomplete(function () 
           
           if not self.canceled_path then 
-            self.position.x = lume.round((self.position.x/(level_width * TILESIZE)) * (level_width)) * TILESIZE
-            self.position.y = lume.round((self.position.y/(level_height * TILESIZE)) * (level_height)) * TILESIZE
+            self.position.x = lume.round((self.position.x/(LEVEL_WIDTH * TILESIZE)) * (LEVEL_WIDTH)) * TILESIZE
+            self.position.y = lume.round((self.position.y/(LEVEL_HEIGHT * TILESIZE)) * (LEVEL_HEIGHT)) * TILESIZE
 
-            level[prev_array_y][prev_array_x] = walkable_tile
+            LEVEL[prev_array_y][prev_array_x] = walkable_tile
             
             
             local current_array_x, current_array_y = self:world_to_array2d(self.position.x,self.position.y)
-            level[current_array_y][current_array_x] = player_tile
+            LEVEL[current_array_y][current_array_x] = player_tile
           else
             lume.clear(self.tile_path)
-            self.position.x = lume.round((self.position.x/(level_width * TILESIZE)) * (level_width)) * TILESIZE
-            self.position.y = lume.round((self.position.y/(level_height * TILESIZE)) * (level_height)) * TILESIZE
-            level[prev_array_y][prev_array_x] = walkable_tile
+            self.position.x = lume.round((self.position.x/(LEVEL_WIDTH * TILESIZE)) * (LEVEL_WIDTH)) * TILESIZE
+            self.position.y = lume.round((self.position.y/(LEVEL_HEIGHT * TILESIZE)) * (LEVEL_HEIGHT)) * TILESIZE
+            LEVEL[prev_array_y][prev_array_x] = walkable_tile
             local current_array_x, current_array_y = self:world_to_array2d(self.position.x,self.position.y)
             self.canceled_path = false
-            level[current_array_y][current_array_x] = player_tile
+            LEVEL[current_array_y][current_array_x] = player_tile
           end
 
         end)
@@ -277,9 +295,7 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
   local player_tile = 9
   
 
-  local true_tile_size = TILESIZE
-  local true_level_width = level_width * true_tile_size
-  local true_level_height = level_height * true_tile_size
+ 
   --(self.x + self.w/2)
   --and not has_inputted
   local cur_x = self.position.x
@@ -293,9 +309,9 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
   if not self.is_tweening then
     if up[1] then
       
-      local next_x = cur_x + up[2].x * true_tile_size
-      local next_y = cur_y + up[2].y * true_tile_size
-      local in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
+      local next_x = cur_x + up[2].x * TILESIZE
+      local next_y = cur_y + up[2].y * TILESIZE
+      local in_bounds = next_x <= WORLD_LEVEL_WIDTH and next_x >= 0 and next_y <= WORLD_LEVEL_HEIGHT and next_y >= 0
       
       local prev_array_x, prev_array_y = self:world_to_array2d(cur_x,cur_y)
       local next_array_x, next_array_y = self:world_to_array2d(next_x, next_y)
@@ -303,19 +319,19 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
       
 
       
-      local array_in_bounds = next_array_x <= level_width and next_array_x > 0 and next_array_y <= level_height and next_array_y > 0
+      local array_in_bounds = next_array_x <= LEVEL_WIDTH and next_array_x > 0 and next_array_y <= LEVEL_HEIGHT and next_array_y > 0
       local is_valid = true 
       if array_in_bounds then
-        is_valid = level[next_array_y][next_array_x] ~= unreachable_tile
+        is_valid = LEVEL[next_array_y][next_array_x] ~= unreachable_tile
       end
       if in_bounds and is_valid and array_in_bounds then 
         cur_x = next_x 
         cur_y = next_y 
         self.is_tweening = true
         self.tween_time = self.og_tween_time
-        level[prev_array_y][prev_array_x] = walkable_tile
-        level[next_array_y][next_array_x] = player_tile
-        --level[array_y][array_x] = 9
+        LEVEL[prev_array_y][prev_array_x] = walkable_tile
+        LEVEL[next_array_y][next_array_x] = player_tile
+        --LEVEL[array_y][array_x] = 9
       end
 
 
@@ -323,9 +339,9 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     end
     
     if down[1]  then
-      local next_x = cur_x + down[2].x * true_tile_size
-      local next_y = cur_y + down[2].y * true_tile_size
-      local in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
+      local next_x = cur_x + down[2].x * TILESIZE
+      local next_y = cur_y + down[2].y * TILESIZE
+      local in_bounds = next_x <= WORLD_LEVEL_WIDTH and next_x >= 0 and next_y <= WORLD_LEVEL_HEIGHT and next_y >= 0
       
       local prev_array_x, prev_array_y = self:world_to_array2d(cur_x,cur_y)
       local next_array_x, next_array_y = self:world_to_array2d(next_x, next_y)
@@ -333,18 +349,18 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
       
 
       
-      local array_in_bounds = next_array_x <= level_width and next_array_x > 0 and next_array_y <= level_height and next_array_y > 0
+      local array_in_bounds = next_array_x <= LEVEL_WIDTH and next_array_x > 0 and next_array_y <= LEVEL_HEIGHT and next_array_y > 0
       local is_valid = true 
       if array_in_bounds then
-        is_valid = level[next_array_y][next_array_x] ~= unreachable_tile
+        is_valid = LEVEL[next_array_y][next_array_x] ~= unreachable_tile
       end
       if in_bounds and is_valid and array_in_bounds then 
         cur_x = next_x 
         cur_y = next_y 
         self.is_tweening = true
         self.tween_time = self.og_tween_time
-        level[prev_array_y][prev_array_x] = walkable_tile
-        level[next_array_y][next_array_x] = player_tile
+        LEVEL[prev_array_y][prev_array_x] = walkable_tile
+        LEVEL[next_array_y][next_array_x] = player_tile
         
       end
 
@@ -352,9 +368,9 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     end
     
     if left[1] then
-      local next_x = cur_x + left[2].x * true_tile_size
-      local next_y = cur_y + left[2].y * true_tile_size
-      local in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
+      local next_x = cur_x + left[2].x * TILESIZE
+      local next_y = cur_y + left[2].y * TILESIZE
+      local in_bounds = next_x <= WORLD_LEVEL_WIDTH and next_x >= 0 and next_y <= WORLD_LEVEL_HEIGHT and next_y >= 0
       
       local prev_array_x, prev_array_y = self:world_to_array2d(cur_x,cur_y)
       local next_array_x, next_array_y = self:world_to_array2d(next_x, next_y)
@@ -362,18 +378,18 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
       
 
       
-      local array_in_bounds = next_array_x <= level_width and next_array_x > 0 and next_array_y <= level_height and next_array_y > 0
+      local array_in_bounds = next_array_x <= LEVEL_WIDTH and next_array_x > 0 and next_array_y <= LEVEL_HEIGHT and next_array_y > 0
       local is_valid = true 
       if array_in_bounds then
-        is_valid = level[next_array_y][next_array_x] ~= unreachable_tile
+        is_valid = LEVEL[next_array_y][next_array_x] ~= unreachable_tile
       end
       if in_bounds and is_valid and array_in_bounds then 
         cur_x = next_x 
         cur_y = next_y 
         self.is_tweening = true
         self.tween_time = self.og_tween_time
-        level[prev_array_y][prev_array_x] = walkable_tile
-        level[next_array_y][next_array_x] = player_tile
+        LEVEL[prev_array_y][prev_array_x] = walkable_tile
+        LEVEL[next_array_y][next_array_x] = player_tile
         
       end
 
@@ -383,9 +399,9 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     if right[1] then
       
       
-      local next_x = cur_x + right[2].x * true_tile_size
-      local next_y = cur_y + right[2].y * true_tile_size
-      local in_bounds = next_x <= true_level_width and next_x >= 0 and next_y <= true_level_height and next_y >= 0
+      local next_x = cur_x + right[2].x * TILESIZE
+      local next_y = cur_y + right[2].y * TILESIZE
+      local in_bounds = next_x <= WORLD_LEVEL_WIDTH and next_x >= 0 and next_y <= WORLD_LEVEL_HEIGHT and next_y >= 0
       
       local prev_array_x, prev_array_y = self:world_to_array2d(cur_x,cur_y)
       local next_array_x, next_array_y = self:world_to_array2d(next_x, next_y)
@@ -393,18 +409,18 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
       
 
       
-      local array_in_bounds = next_array_x <= level_width and next_array_x > 0 and next_array_y <= level_height and next_array_y > 0
+      local array_in_bounds = next_array_x <= LEVEL_WIDTH and next_array_x > 0 and next_array_y <= LEVEL_HEIGHT and next_array_y > 0
       local is_valid = true 
       if array_in_bounds then
-        is_valid = level[next_array_y][next_array_x] ~= unreachable_tile
+        is_valid = LEVEL[next_array_y][next_array_x] ~= unreachable_tile
       end
       if in_bounds and is_valid and array_in_bounds then 
         cur_x = next_x 
         cur_y = next_y 
         self.is_tweening = true
         self.tween_time = self.og_tween_time
-        level[prev_array_y][prev_array_x] = walkable_tile
-        level[next_array_y][next_array_x] = player_tile
+        LEVEL[prev_array_y][prev_array_x] = walkable_tile
+        LEVEL[next_array_y][next_array_x] = player_tile
         
       end
 
@@ -422,8 +438,8 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     if self.is_tweening then
       if self.tween_time == self.og_tween_time then  
         flux.to(self.position, self.tween_time, {x = cur_x, y = cur_y}):oncomplete(function ()
-          --self.position.x = lume.round((self.position.x/(level_width * TILESIZE)) * (level_width)) * TILESIZE
-          --self.position.y = lume.round((self.position.y/(level_height * TILESIZE)) * (level_height)) * TILESIZE
+          --self.position.x = lume.round((self.position.x/(LEVEL_WIDTH * TILESIZE)) * (LEVEL_WIDTH)) * TILESIZE
+          --self.position.y = lume.round((self.position.y/(LEVEL_HEIGHT * TILESIZE)) * (LEVEL_HEIGHT)) * TILESIZE
           self.position = (Vector2(self:world_to_array2d(self.position:unpack())) - Vector2(1,1)) * TILESIZE
           
         end)
@@ -487,8 +503,8 @@ end
 function Entity:update_line_angle(dt)
   --shows the actually line the players pointing in
    
-  self.sin = math.sin(degrees_to_radians(self.angle))
-  self.cos = math.cos(degrees_to_radians(self.angle)) 
+  self.sin = math.sin(self.angle_convert:degrees_to_radians(self.angle))
+  self.cos = math.cos(self.angle_convert:degrees_to_radians(self.angle)) 
   self.line.x1 = self.position.x + self.dimension.x/2 
   self.line.y1 = self.position.y + self.dimension.y/2 
   self.line.x2 = self.position.x + self.dimension.x/2 + self.line.length*self.cos
@@ -509,25 +525,23 @@ function Entity:follow_target(a_vector,dt)
     --local angle = mouse_vector:angleTo(self.position + (self.dimension * 0.5))
     --self.position.x + (self.dimension.x/2)
     local angle = lume.angle(self.position.x + (self.dimension.x/2),self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y)
-    self.angle = radians_to_degrees(angle)
+    self.angle = self.angle_convert:radians_to_degrees(angle)
     
 
     
-    if not point_circle(self.position.x + (self.dimension.x/2), self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y, 10) then
- 
+  if not self.collider:point_circle(self.position.x + (self.dimension.x/2), self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y, 10) then
 
-      
-      
-      local a_siny = math.sin(angle)
-      local a_cosx = math.cos(angle)
-      self.velocity.x = lume.lerp(self.velocity.x, 
-                                  a_cosx *  self.move_speed, 
-                                  self.acceleration)
-      self.velocity.y = lume.lerp(self.velocity.y, 
-                                  a_siny *  self.move_speed, 
-                                  self.acceleration)
+    local a_siny = math.sin(angle)
+    local a_cosx = math.cos(angle)
+    self.velocity.x = lume.lerp(self.velocity.x, 
+                                a_cosx *  self.move_speed, 
+                                self.acceleration)
+    self.velocity.y = lume.lerp(self.velocity.y, 
+                                a_siny *  self.move_speed, 
+                                self.acceleration)
    
   else
+
     self.velocity.y = lume.lerp(self.velocity.y, 
                                 0, 
                                 self.friction)
@@ -535,6 +549,7 @@ function Entity:follow_target(a_vector,dt)
                                 0, 
                                 self.friction)
   end
+
   self:collide(dt)
 end
 
@@ -563,17 +578,17 @@ function Entity:tank_movement(dt)
 
   
   
-  local foward_y = math.sin(degrees_to_radians(self.angle))
-  local foward_x = math.cos(degrees_to_radians(self.angle))
+  local foward_y = math.sin(self.angle_convert:degrees_to_radians(self.angle))
+  local foward_x = math.cos(self.angle_convert:degrees_to_radians(self.angle))
   
-  local left_y = math.sin(degrees_to_radians(self.angle - 90))
-  local left_x = math.cos(degrees_to_radians(self.angle - 90))
+  local left_y = math.sin(self.angle_convert:degrees_to_radians(self.angle - 90))
+  local left_x = math.cos(self.angle_convert:degrees_to_radians(self.angle - 90))
   
-  local right_y = math.sin(degrees_to_radians(self.angle + 90))
-  local right_x = math.cos(degrees_to_radians(self.angle + 90))
+  local right_y = math.sin(self.angle_convert:degrees_to_radians(self.angle + 90))
+  local right_x = math.cos(self.angle_convert:degrees_to_radians(self.angle + 90))
   
-  local back_y = math.sin(degrees_to_radians(self.angle - 180))
-  local back_x = math.cos(degrees_to_radians(self.angle - 180))
+  local back_y = math.sin(self.angle_convert:degrees_to_radians(self.angle - 180))
+  local back_x = math.cos(self.angle_convert:degrees_to_radians(self.angle - 180))
   
   if up then
 
@@ -786,6 +801,21 @@ function Entity:apply_gravity(dt)
 
 end
 
+function Entity:update_hitbox_position()
+  
+  self.hitbox[1] = self.position.x             
+  self.hitbox[2] = self.position.y
+  self.hitbox[3] = self.position.x                   
+  self.hitbox[4] = self.position.y + self.dimension.y
+  
+  self.hitbox[5] = self.position.x + self.dimension.x 
+  self.hitbox[6] = self.position.y + self.dimension.y
+  self.hitbox[7] =  self.position.x + self.dimension.x 
+  self.hitbox[8] = self.position.y
+
+
+
+end
 
 --without his function nothing that isn't tile-based moves
 function Entity:collide(dt)
