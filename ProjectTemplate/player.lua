@@ -34,12 +34,12 @@ end
 
 function Player:update(dt)
     --hump camera
-    local mx,my = cam:worldCoords(love.mouse.getPosition())
+    local mx,my = CAM:worldCoords(love.mouse.getPosition())
     
     --kikito's gamera
-    --local mx, my = gam:toWorld(love.mouse.getPosition())
+    --local mx, my = GAM:toWorld(love.mouse.getPosition())
     --gam:setPosition(self.x + self.w/2,self.y + self.h/2)
-    cam:lookAt(self.position.x + self.dimension.x/2,self.position.y + self.dimension.y/2)
+    CAM:lookAt(self.position.x + self.dimension.x/2,self.position.y + self.dimension.y/2)
     self.mx = mx 
     self.my = my 
     local mouse_vector = Vector2(self.mx, self.my)
