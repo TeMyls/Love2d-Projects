@@ -384,7 +384,7 @@ end
 -- love callback will still be invoked
 function love.update(dt)
   
-  Gamestate.update(dt)
+  --Gamestate.update(dt)
 
   -- no need for Gamestate.update(dt)
   
