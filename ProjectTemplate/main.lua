@@ -34,6 +34,8 @@ WORLD_LEVEL_HEIGHT = LEVEL_HEIGHT * TILESIZE
 Tiles = {}
 Protag = {}
 
+
+--scenes
 local menu = {}
 local paused = {}
 local game = {}
@@ -46,7 +48,7 @@ local player_image_path = "assets/toledo.png"
 love.graphics.setDefaultFilter("nearest", "nearest")
 
 function menu:draw()
-  love.graphics.print("Press Enter to continue",  SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+  love.graphics.print("Press Enter to continue\nSpace to Pause in Game",  SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 end
 
 function menu:update()
@@ -60,7 +62,7 @@ function menu:keyreleased(key, code)
 end
 
 function paused:draw()
-  love.graphics.print("Paused", SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+  love.graphics.print("Paused\nBackspace to Menu\nAny to continue", SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 end
 
 function paused:update()
@@ -384,7 +386,7 @@ end
 -- love callback will still be invoked
 function love.update(dt)
   
-  --Gamestate.update(dt)
+
 
   -- no need for Gamestate.update(dt)
   
