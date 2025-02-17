@@ -573,7 +573,10 @@ function Entity:tank_movement(dt)
     
   end
 
-  
+  local angle = self.angle_convert:degrees_to_radians(self.angle)
+  self.sin = math.sin(angle)
+  self.cos = math.cos(angle)
+
   
   local foward_y = math.sin(self.angle_convert:degrees_to_radians(self.angle))
   local foward_x = math.cos(self.angle_convert:degrees_to_radians(self.angle))
@@ -629,7 +632,7 @@ function Entity:topdown_2d_movement(dt)
   local right = love.keyboard.isDown('right','d')
   local left = love.keyboard.isDown('left','a')
 
- 
+  
   --keyboard movement
   --classic up button movement going up left right and down with regards to player angle feels clunky
   --dx and dy are meant to be normalization vectors so when the character moves diagonally they don't go faster from the x and y speed together
@@ -655,6 +658,11 @@ function Entity:topdown_2d_movement(dt)
   else
     self.direction.x = 0
   end
+
+  --normalization without hump
+  --local normalizer = math.sqrt(self.direction.x * self.direction.x + self.direction.y * self.direction.y)
+  --self.direction.x = self.direction.x/normalizer 
+  --self.direction.y = self.direction.y/normalizer
   --normalizeInplace method is spart of Hump.vectors class 
   self.direction:normalizeInplace()
   
