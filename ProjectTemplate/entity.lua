@@ -501,10 +501,7 @@ function Entity:animate(dt,anim_array, quad, dir)
 end
 
 function Entity:update_line_angle(dt)
-  --shows the actually line the players pointing in
-   
-  self.sin = math.sin(self.angle_convert:degrees_to_radians(self.angle))
-  self.cos = math.cos(self.angle_convert:degrees_to_radians(self.angle)) 
+  --shows the actually line the players pointing at an angle
   self.line.x1 = self.position.x + self.dimension.x/2 
   self.line.y1 = self.position.y + self.dimension.y/2 
   self.line.x2 = self.position.x + self.dimension.x/2 + self.line.length*self.cos
@@ -531,13 +528,13 @@ function Entity:follow_target(a_vector,dt)
     
   if not self.collider:point_circle(self.position.x + (self.dimension.x/2), self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y, 10) then
 
-    local a_siny = math.sin(angle)
-    local a_cosx = math.cos(angle)
+    self.sin = math.sin(angle)
+    self.cos = math.cos(angle)
     self.velocity.x = lume.lerp(self.velocity.x, 
-                                a_cosx *  self.move_speed, 
+                                self.cos *  self.move_speed, 
                                 self.acceleration)
     self.velocity.y = lume.lerp(self.velocity.y, 
-                                a_siny *  self.move_speed, 
+                                self.sin *  self.move_speed, 
                                 self.acceleration)
    
   else
@@ -658,6 +655,7 @@ function Entity:topdown_2d_movement(dt)
   else
     self.direction.x = 0
   end
+  --normalizeInplace method is spart of Hump.vectors class 
   self.direction:normalizeInplace()
   
   --if acceleration or friction is set to one it will immediately start and stop
