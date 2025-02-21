@@ -27,6 +27,8 @@ function Player:new(position_table,dimension_table,hp,image_path,quad_x,quad_y,i
 
   self.walkable_tile = 0
   self.unreachable_tile = 1
+  self.mouse_vector = Vector2(self.mx, self.my)
+
   
   
 end
@@ -42,7 +44,8 @@ function Player:update(dt)
     CAM:lookAt(self.position.x + self.dimension.x/2,self.position.y + self.dimension.y/2)
     self.mx = mx 
     self.my = my 
-    local mouse_vector = Vector2(self.mx, self.my)
+    self.mouse_vector.x = self.mx 
+    self.mouse_vector.y = self.my
 
     self.delta_time = dt
     --self:update_line_angle(dt)
@@ -54,11 +57,11 @@ function Player:update(dt)
     --self:topdown_2d_movement(dt)
   
     --self:platformer_2d_movement(dt)
-    self:continuous_tile_button_movement(dt,self.walkable_tile,self.unreachable_tile)
+    --self:continuous_tile_button_movement(dt,self.walkable_tile,self.unreachable_tile)
     --self:continuous_tile_mouse_movement(dt,self.walkable_tile)
-    --if love.mouse.isDown(1) then
-      --self:follow_target(mouse_vector,dt)
-    --end
+    if love.mouse.isDown(1) then
+      self:follow_target(mouse_vector,dt)
+    end
     self:update_hitbox_position()
     
 end
