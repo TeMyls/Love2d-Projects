@@ -2,7 +2,6 @@ local angle_convert = {}
 angle_convert.__index = angle_convert
 
 function angle_convert:new()
-  self.__index = self
   return setmetatable( {} , self)
 end
 

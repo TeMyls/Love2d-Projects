@@ -4,7 +4,6 @@ raycast.__index = raycast
 local _floor, _cos, _sin, _max, _abs, _sqrt = math.floor, math.cos, math.sin, math.max, math.abs, math.sqrt
 
 function raycast:new()
-    self.__index = self
     return setmetatable( {} , self)
 end
 
@@ -17,7 +16,7 @@ function raycast:get_distance(x1, y1, x2, y2)
 end
 
 function raycast:in_bounds(x, y, grid_w, grid_h)
-    return 1 <= x < grid_w and  1 <= y < grid_h
+    return 1 <= x and x < grid_w - 1 and  1 <= y and x < grid_h - 1
 end
 
 function raycast:DDA(x1, y1, x2, y2)
@@ -50,14 +49,15 @@ function raycast:DDA(x1, y1, x2, y2)
 
 
 
-  
+--only works in tiled worlds
 function raycast:DDA_raycast(x1, y1, radians, max_length, all_cells, grid, grid_width, grid_height)
     --assumes grid like
     --{{0, 0, 0}, 
     --{0, 0, 0},
     --{0, 0, 0}} 
     --with a tile assigned as floor and wall tiles
-    --alls cells should be set up like {1: true 2:false, 3:true}, 
+    --alls cells should be set up like {1 = true 2 = false, 3 = true}, 
+    --2 would be an invalid cell in this case
     --sigfigy
     --cast a ray from one point to another
 

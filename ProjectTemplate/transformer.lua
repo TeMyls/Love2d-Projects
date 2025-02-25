@@ -10,7 +10,6 @@ local  _cos, _sin  = math.cos, math.sin
 
 
 function transformer:new()
-    self.__index = self
     return setmetatable( {} , self)
 end
 

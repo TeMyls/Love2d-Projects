@@ -7,7 +7,7 @@ local raycast = require "raycast"
 --other libraries
 local bump = require 'lib.bump'
 
-local world = bump.newWorld()
+local World = bump.newWorld()
 
 local Grid = require ("lib.jumper.grid")
 local Pathfinder = require ("lib.jumper.pathfinder")
@@ -24,9 +24,10 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
 
   --general
   self.position = Vector2(position_table.x, position_table.y)
-  self.velocity = Vector2(0, 0)
+  self.velocity = Vector2.zero
   self.dimension = Vector2(dimesion_table.w, dimesion_table.h)
-  self.direction =  Vector2(0, 0)
+  self.direction =  Vector2.zero
+  
   --if acceleration or friction is set to one it will immediately start and stop
   self.friction = 1
   self.acceleration = 1
@@ -93,6 +94,7 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   --mouse coords
   self.mx = 0
   self.my = 0
+  self.mouse_vector = Vector2.zero
   
   
   --movement code
@@ -122,10 +124,8 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   self.terminal_velocity = fg * 1.5
   
   --classifcation
-  if in_world == true 
-  and not self.button_tile_input 
-  or self.mouse_tile_input then
-    world:add(self, self.position.x,self.position.y,self.dimension.x,self.dimension.y)
+  if in_world == true then
+    World:add(self, self.position.x,self.position.y,self.dimension.x,self.dimension.y)
   end
   
   if group ~= nil then
@@ -153,6 +153,9 @@ function Entity:new(position_table,dimesion_table,hp,img,quad_x,quad_y,in_world,
   
 end
 
+function Entity:in_bounds(x, y, grid_w, grid_h)
+  return 0 < x and x < grid_w  and  0 < y and x < grid_h 
+end
 
 function Entity:array2d_to_world(x,y)
   local _x = (x - 1) * TILESIZE
@@ -166,13 +169,13 @@ function Entity:world_to_array2d(x,y)
   return _x , _y
 end
 
-function Entity:continuous_tile_mouse_movement(dt,walkable_tile)
+function Entity:follow_target_tile(dt,walkable_tile, a_vector)
   
   self.mouse_tile_input = true
   local in_bounds = false
-  --real world coordinates getting translated into array coords
+  --real W coordinates getting translated into array coords
   local start_cell_x, start_cell_y = self:world_to_array2d(self.position.x, self.position.y)
-  local end_cell_x,end_cell_y = self:world_to_array2d(self.mx, self.my)
+  local end_cell_x,end_cell_y = self:world_to_array2d(a_vector.x, a_vector.y)
   local player_tile = 9
   --local walkable_tile = walkable_tile
   --if #protag[1].tile_path == 0 then
@@ -279,9 +282,8 @@ flux.update(dt)
   
 end
 
-function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_tile)
+function Entity:tile_button_movement(dt,walkable_tile,unreachable_tile)
   self.button_tile_input = true
-
 
   local up = {love.keyboard.isDown('up','w'), {x = 0, y = -1}}
   local down = {love.keyboard.isDown('down','s'), {x = 0, y = 1}}
@@ -456,7 +458,7 @@ function Entity:continuous_tile_button_movement(dt,walkable_tile,unreachable_til
     local x,y,vx,vy= new_x,new_y,protag[1].vx,protag[1].vy
     local futureX =  x --+ vx * dt
     local futureY =  y --+ vy * dt
-    local nextX,nextY,cols,len = world:move(protag[1],new_x,new_y)
+    local nextX,nextY,cols,len = W:move(protag[1],new_x,new_y)
     ]]--
     --protag[1].x = cur_x
     --protag[1].y = cur_y
@@ -510,22 +512,13 @@ end
 
 
 function Entity:follow_target(a_vector,dt)
-  --mouse movement
-  
-
-  
-    
-  --distance between the two objects
+  --angle calculation without lume
+  --local angle = math.atan2(a_vector.y - (self.position.x + self.dimension.x/2),a_vector.x - (self.position.x + self.dimension.x/2))
+  local angle = lume.angle(self.position.x + (self.dimension.x/2),self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y)
+  self.angle = self.angle_convert:radians_to_degrees(angle)
     
 
-    --local angle = math.atan2(mouse_y - (self.y+self.h/2),mouse_x - (self.x+self.w/2))
-    --local angle = mouse_vector:angleTo(self.position + (self.dimension * 0.5))
-    --self.position.x + (self.dimension.x/2)
-    local angle = lume.angle(self.position.x + (self.dimension.x/2),self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y)
-    self.angle = self.angle_convert:radians_to_degrees(angle)
-    
-
-    
+  --stop moving if certain distance from target
   if not self.collider:point_circle(self.position.x + (self.dimension.x/2), self.position.y + (self.dimension.y/2), a_vector.x, a_vector.y, 10) then
 
     self.sin = math.sin(angle)
@@ -547,7 +540,7 @@ function Entity:follow_target(a_vector,dt)
                                 self.friction)
   end
 
-  self:collide(dt)
+  self:collide(dt, true)
 end
 
 function Entity:tank_movement(dt)
@@ -622,7 +615,7 @@ function Entity:tank_movement(dt)
   
   end
 
-  self:collide(dt)
+  self:collide(dt, true)
 end
 
 
@@ -697,7 +690,7 @@ function Entity:topdown_2d_movement(dt)
   
   
   
-  self:collide(dt)
+  self:collide(dt, true)
 end
 
 function Entity:platformer_2d_movement(dt)
@@ -782,7 +775,7 @@ function Entity:platformer_2d_movement(dt)
       --self.jump_counter = self.jump_segments
     --end
   
-  self:collide(dt)
+  self:collide(dt, true)
 end
 
 
@@ -824,16 +817,18 @@ function Entity:update_hitbox_position()
 end
 
 --without his function nothing that isn't tile-based moves
-function Entity:collide(dt)
+function Entity:collide(dt, is_tiled)
   
-  --the actually collision code for the library used for the world
+  --the actually collision code for the library used for the W
   self.last_y = self.position.y
   local x,y,vx,vy= self.position.x,self.position.y,self.velocity.x,self.velocity.y
 
   local futureX =  x + vx * dt
   local futureY =  y + vy * dt
-  local nextX,nextY,cols,len = world:move(self,futureX,futureY)
-  if self.plaforming then
+  
+  if is_tiled then
+    --using bump
+    local nextX,nextY,cols,len = World:move(self,futureX,futureY)
     for i = 1 , len do
       local col = cols[i]
       local kind = col.other.class
@@ -865,20 +860,24 @@ function Entity:collide(dt)
       
 
     end
+    self.position.x = nextX
+    self.position.y = nextY
+  else
+    self.position.x = futureX
+    self.position.y = futureY
   end
 
-  self.position.x = nextX
-  self.position.y = nextY
+  
 end
 
 function Entity:add_in_world()
 
-  world:add(self, self.position.x,self.position.y,self.dimension.x,self.dimension.y)
+  World:add(self, self.position.x,self.position.y,self.dimension.x,self.dimension.y)
 
 end
 
 function Entity:delete_in_world()
-  world:remove(self)
+  World:remove(self)
 end
 
 function Entity:remove_from_group(group,ind)

@@ -29,11 +29,13 @@ LEVEL_WIDTH = #map_tiles[1]
 LEVEL_HEIGHT = #map_tiles
 WORLD_LEVEL_WIDTH = LEVEL_WIDTH * TILESIZE
 WORLD_LEVEL_HEIGHT = LEVEL_HEIGHT * TILESIZE
+CIRCLE_ARENA = {fill = "line", x = 0, y=0, r = 500}
 
 --Global groups for objects
 Tiles = {}
 Protag = {}
-
+Projectiles = {}
+Enemies = {}
 
 --scenes
 local menu = {}
@@ -344,6 +346,10 @@ function game:update(dt)
     
 
   end
+
+  for _, v in ipairs(Projectiles) do
+    v:update(dt)
+  end
   
 end
 
@@ -366,6 +372,10 @@ function game:draw()
       
       v:draw()
          
+    end
+
+    for _, v in ipairs(Projectiles) do
+      v:draw()
     end
 
 

@@ -9,7 +9,6 @@ local lim = 3
 
 
 function collider:new()
-  self.__index = self
   return setmetatable( {} , self)
 end
 
