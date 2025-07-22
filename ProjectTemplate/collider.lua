@@ -71,7 +71,7 @@ function collider:point_rectangle(px, py, rx, ry, rw, rh)
 function collider:rectangle_rectangle(rx1, ry1, rw1, rh1, rx2, ry2, rw2, rh2)
     --AABB
     --or axis aligned bounding box
-    if rx1 + rw1 >= rw2 and
+    if rx1 + rw1 >= rx2 and
     rx1 <= rx2 + rw2 and
     ry1 + rh1 >= ry2 and
     ry1 <= ry2 + rh2 then
