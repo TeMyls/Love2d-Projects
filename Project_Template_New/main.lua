@@ -97,11 +97,17 @@ end
 
 function game:init()
   --basic_quad =  love.graphics.newQuad(0,1,16,16,tileset)
+  
+  map_tiles = game:create_2D_array(10, 10, 0)
+  game:display(map_tiles)
+  map_tiles = game:add_2D_array_walls(map_tiles, 1)
+  game:display(map_tiles)
   game:load_map(map_tiles)
-  if #Protag > 0 then
+  if #Protag == 0 then
     --P[1].map_reference = map_tiles
+    game:place_player(map_tiles)
   end
-
+  game:load_map(map_tiles)
   if #Protag == 0 then
     
     CAM:lookAt((LEVEL_WIDTH*CAMERA_ZOOM)/2,(LEVEL_HEIGHT*CAMERA_ZOOM)/2)
@@ -109,8 +115,72 @@ function game:init()
   --gam:setWorld(0,0,WORLD_LEVEL_WIDTH,WORLD_LEVEL_HEIGHT)
 end
 
+function game:place_player(array_2d)
+  local lx = love.math.random(2, #array_2d[1] - 1)
+  local ly = love.math.random(2, #array_2d - 1)
+
+
+  local positions = { 
+                      x = lx * TILESIZE-TILESIZE, 
+                      y = ly * TILESIZE-TILESIZE
+                    }
+  print(("Map Width: %d Map Height: %d\nPlayer X: %d Player: %d \nLevel X: %d Level Y: %d \n"):format(
+                                                                        #array_2d[1], #array_2d,
+                                                                        positions.x, positions.y,
+                                                                        lx, ly
+                                                                      ))
+  local dimesions = {w = TILESIZE, h = TILESIZE}
+  local t = Player(
+        positions,
+        dimesions,
+        10,
+        player_image_path,
+        0 ,
+        0 ,
+        true,
+        Protag
+      )
+end
+
 function game:enter()
     
+end
+
+function game:create_2D_array(width, height, filler)
+  local array_2d = {}
+
+  for y = 1, height do
+    table.insert( array_2d, {})
+    for x = 1, width do
+      table.insert( array_2d[y], filler)
+    end
+  end
+
+  return array_2d
+end
+
+function game:add_2D_array_walls(array_2d, wall_filler)
+  --vertical walls
+
+  local y = 1
+  while y <= #array_2d do
+    array_2d[y][1] = wall_filler
+    array_2d[y][#array_2d[y]] = wall_filler
+    y = y + 1
+  end
+
+  --horizontal walls
+  local x = 1
+  while x <= #array_2d do
+    array_2d[1][x] = wall_filler
+    array_2d[#array_2d][x] = wall_filler
+    x = x + 1
+  end
+  return array_2d
+end
+
+function game:wave_function_collapse(array_2d)
+
 end
 
 function game:load_map(array_2d)
@@ -126,7 +196,7 @@ function game:load_map(array_2d)
           tileset_path,
           3 * TILESIZE,
           8 * TILESIZE,
-          true,
+          false,
           Tiles
           )
         
