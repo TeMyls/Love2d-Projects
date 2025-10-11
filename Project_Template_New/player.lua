@@ -497,9 +497,9 @@ function Player:update(dt)
             self.state = "dead"
           end
           
-        elseif love.keyboard.isDown('r') then
+        --elseif love.keyboard.isDown('r') then
           --restart
-          self:reset(map_tiles)
+          --self:reset(map_tiles)
           
         end
       else

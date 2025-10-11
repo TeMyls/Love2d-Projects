@@ -361,6 +361,17 @@ function game:update(dt)
   
 end
 
+function game:keypressed(key)
+  if #Protag > 0  then
+    --restart
+    if key == "r" then
+        Protag[1]:reset(map_tiles, 0)
+    end
+    
+  end
+
+end
+
 function game:draw()
   
   
