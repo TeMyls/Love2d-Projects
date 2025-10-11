@@ -307,13 +307,13 @@ function Player:fire_bullets(dt)
   
 end
 
-function Player:reset(array_2d)
+function Player:reset(array_2d, floor_tile)
   local viable_tiles = {}
   self.hp = self.og_hp
   self.state = "idle"
   for y = 1,#array_2d do
     for x = 1,#array_2d[y] do
-      if array_2d[y][x] == 0  then
+      if array_2d[y][x] == floor_tile  then
         table.insert(viable_tiles, Vector2(x * TILESIZE, y * TILESIZE))
       end
     end
