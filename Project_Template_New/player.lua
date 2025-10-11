@@ -237,7 +237,7 @@ function Player:fire_bullets(dt)
 
   self.angle = self.angle_convert:radians_to_degrees(angle)
 
-love.math.random(-15, 15)
+
   self.sin = math.sin(angle)
   self.cos = math.cos(angle)
 
@@ -248,7 +248,7 @@ love.math.random(-15, 15)
     self.current_ammo = self.current_ammo - 1
     
     --adding randoness to the bullet launch
-    --angle = self.angle_convert:degrees_to_radians(self.angle + )
+    --angle = self.angle_convert:degrees_to_radians(self.angle + love.math.random(-15, 15))
     local a_sin = math.sin(angle)
     local a_cos = math.cos(angle)
 
