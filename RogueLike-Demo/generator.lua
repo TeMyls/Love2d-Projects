@@ -134,14 +134,14 @@ function BSP(array_2d, splits)
     local arr_w = #array_2d[1]
     local arr_h = #array_2d
     local areas = {{arr_x, arr_y, arr_w, arr_h}}
-    local rng = love.math.newRandomGenerator()
+    --local rng = love.math.newRandomGenerator()
     local prev = ""
 
     while #areas ~= splits do
         --local rand = rng:random(0,1) -- 0 for vertical split, 1 for horizontal split
         local rand = love.math.random(0, 100)  
         if rand >= 50 then
-            local new_w = rng:random(math.floor(arr_w / 2), math.floor(arr_w * 0.6))
+            local new_w = love.math.random(math.floor(arr_w / 2), math.floor(arr_w * 0.6))
                 table.insert(areas, {arr_x, arr_y, new_w, arr_h})
                 table.insert(areas, {arr_x + new_w - 1, arr_y, arr_w - new_w + 1, arr_h})
             --[[
@@ -167,7 +167,7 @@ function BSP(array_2d, splits)
             ]]--
             
         else
-            local new_h = rng:random(math.floor(arr_h / 2), math.floor(arr_h * 0.6))
+            local new_h = love.math.random(math.floor(arr_h / 2), math.floor(arr_h * 0.6))
                 table.insert(areas, {arr_x, arr_y, arr_w, new_h})
                 table.insert(areas, {arr_x, arr_y + new_h - 1, arr_w, arr_h - new_h + 1})
             --[[
@@ -607,8 +607,8 @@ function spawn_rooms_from_BSP(areas)
       local rand = love.math.random(0, 100)  
       --local room_w = 0
       --local room_h = 0
-      local room_w = lume.round(areas[i][3] * rng:random(50,80)/100) --+ rng:random(1,2) * plus_minus
-      local room_h = lume.round(areas[i][4] * rng:random(50,80)/100) --+ rng:random(1,2) * plus_minus
+      local room_w = lume.round(areas[i][3] * love.math.random(50,80)/100) --+ rng:random(1,2) * plus_minus
+      local room_h = lume.round(areas[i][4] * love.math.random(50,80)/100) --+ rng:random(1,2) * plus_minus
 
       --getting rid of skinny rooms
       local h_ratio = room_h/room_w
@@ -626,8 +626,8 @@ function spawn_rooms_from_BSP(areas)
           room_w = room_h
       end
    
-      local room_x = rng:random(areas[i][1] + 1,(areas[i][1] + areas[i][3] - room_w) - 1)
-      local room_y = rng:random(areas[i][2] + 1,(areas[i][2] + areas[i][4] - room_h) - 1)
+      local room_x = love.math.random(areas[i][1] + 1,(areas[i][1] + areas[i][3] - room_w) - 1)
+      local room_y = love.math.random(areas[i][2] + 1,(areas[i][2] + areas[i][4] - room_h) - 1)
 
       print(string.format("room = %d , x=%d, y=%d, width=%d, height=%d", i, room_x, room_y, room_w, room_h))
 

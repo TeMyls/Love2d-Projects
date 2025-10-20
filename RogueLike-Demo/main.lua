@@ -6,6 +6,7 @@ require "unitconverter"
 
 local bump = require 'lib.bump'
 local anim8 = require "lib.anim8"
+local collider = require "collider"
 world = bump.newWorld()
 
 lume = require 'lib.lume'
@@ -28,6 +29,8 @@ screen_height = love.graphics.getHeight()
 level = map_tiles
 level_width = #map_tiles[1]
 level_height = #map_tiles
+virtual_width = screen_width
+virtual_height = screen_height
 
 true_tile_size = TILESIZE
 true_level_width = level_width * true_tile_size
@@ -36,18 +39,16 @@ local tile
 
 
 
-
 love.graphics.setDefaultFilter("nearest", "nearest")
 
-camera_zoom_factor = 3
+camera_zoom_factor = 1
 --json = require "lib/json"
 local gamera = require "lib.gamera"
 local camera = require "lib.hump.camera"
 cam =  camera()
-gam = gamera.new(0,0,100,100)
+--gam = gamera.new(0,0,100,100)
 cam:zoom(camera_zoom_factor)
-
-
+col = collider:new()
 
 
 
@@ -136,12 +137,12 @@ end
 
 
 function love.load()
-      local a = love.timer.getTime()
-      love.math.setRandomSeed(a)
+      --local a = love.timer.getTime()
+      --love.math.setRandomSeed(a)
 
 
 
-      local areas, rooms, tunnels = make_floor(30,30,4)
+      local areas, rooms, tunnels = make_floor(50,50, 6)
       local rand_room = rooms[love.math.random(1,#rooms)]
       local rand_room_x = love.math.random(rand_room.x,rand_room.x + rand_room.w - 1)
       local rand_room_y = love.math.random(rand_room.y,rand_room.y + rand_room.h - 1)
@@ -162,12 +163,13 @@ function love.load()
             )
       print(rand_room_x," ",rand_room_y)
       table.insert(protag,t)
-      console_array2d_print(level)
+      --console_array2d_print(level)
       --display_BSP()
       --print(tostring(level_width), " ",tostring(level_height))
 
       table.insert(protag,t)
-      gam:setWorld(0,0,true_level_width,true_level_height)
+      --gam:setWorld(0,0,true_level_width, true_level_height)
+      --gam:setWorld(0,0,screen_width, screen_height)
       --load_map(map_tiles)
 end
 
@@ -197,6 +199,72 @@ function love.update(dt)
   
 end
 
+function love.mousepressed(x, y, button, istouch)
+  if #protag > 0 then
+    if #protag[1].tile_path > 0 then 
+      protag[1].canceled_path = true
+    end
+  end
+  
+end
+
+
+function love.wheelmoved(x, y)
+  
+  if #protag > 0 then
+    --if protag[1].single_tile_input or protag[1].mouse_tile_input then 
+      local temp = {x = camera_zoom_factor}
+      local max_zoom = 10
+      local min_zoom = .15
+      local zoom_dir = 0
+      local zoom_speed = 20
+      if y > 0 then
+        --up
+          camera_zoom_factor = camera_zoom_factor + zoom_speed * protag[1].delta_time
+        
+      elseif y < 0 then
+        --down
+          camera_zoom_factor = camera_zoom_factor - zoom_speed * protag[1].delta_time
+        
+        
+      end
+      --flux.to(, .5, { x = camera_zoom_factor }):ease("circout"):delay(1)
+      camera_zoom_factor = lume.clamp(camera_zoom_factor,min_zoom,max_zoom)
+      
+      --if camera_zoom_factor <= max_zoom and camera_zoom_factor >= min_zoom then
+        --flux.to(temp, 0.2, {x = camera_zoom_factor})
+      --end
+      cam:zoomTo(temp.x)
+      --gam:setScale(temp.x)
+    --end
+  end
+end
+
+function love.resize(w, h)
+      --Push:resize(w, h)
+      local prev_width, prev_height = screen_width, screen_height
+      screen_width, screen_height = w, h
+      --overall scale change
+      local old_width_scale = (prev_width/virtual_width) * virtual_width
+      local old_height_scale = (prev_height/virtual_height) * virtual_height
+
+      local cur_width_scale = (screen_width/virtual_width) * virtual_width
+      local cur_height_scale = (screen_height/virtual_height) * virtual_height
+      
+      local width_inc = (cur_width_scale - old_width_scale)/prev_width + 1
+      local height_inc = (cur_height_scale - old_height_scale)/prev_height + 1
+      print(("Ratio X %f Ratio Y %f"):format(
+                                          width_inc,
+                                          height_inc
+                                    ))
+
+      camera_zoom_factor = camera_zoom_factor * ((width_inc + height_inc)/2)
+      --gam:setWindow(0,0,true_level_width * ((width_inc + height_inc)/2), true_level_height * ((width_inc + height_inc)/2))
+      --gam:setScale(camera_zoom_factor)
+                                          
+      
+      cam:zoomTo(camera_zoom_factor)
+end
 
 function debug_statements(player_arr_index)
       love.graphics.setColor(1, 0, 0)
@@ -310,28 +378,50 @@ function debug_statements(player_arr_index)
 end
 
 
+
 function love.draw()
   --love.graphics.draw(tileset,basic_quad)
   --love.graphics.rectangle("line",10,10,100,10)
   local num = ""
   
-  --cam:attach()
-  gam:draw(function ()
+  cam:attach()
+  --gam:draw(function ()
 --love.graphics.scale(scale_factor)
     
     --love.graphics.circle("line",cam.x,cam.y,6)
     
     
     tile_sprite_batch:clear(batch_tiles)
+    
+      local rendered_tiles = 0
+      --local cx,cy,cw,ch = gam:getVisible()
+      local cx, cy = 0, 0 
+      local cw, ch = screen_width, screen_height 
+      --cx, cy = Protag[1]:world_to_array2d(cx, cy)
+      --cw, ch = Protag[1]:world_to_array2d(cw, ch)
+      
       for i, v in ipairs(batch_tiles) do
-            local cx,cy,cw,ch = gam:getVisible()
+            --occulsion culling tiles 
+           
+            
+            local tx, ty = batch_tiles[i].x, batch_tiles[i].y
+            tx, ty =  cam:cameraCoords(tx, ty)
+            
+            --[[
             if batch_tiles[i].x  < cx + cw + TILESIZE
             and cx - TILESIZE < batch_tiles[i].x + TILESIZE
             and batch_tiles[i].y < cy + ch + TILESIZE
             and cy - TILESIZE< batch_tiles[i].y + TILESIZE then
-                  tile_sprite_batch:add(batch_tiles[i].quad, batch_tiles[i].x , batch_tiles[i].y - 1)
+            ]]--
+           
+            if col:rectangle_rectangle(tx, ty, tx + TILESIZE, ty + TILESIZE, cx, cy, cw, ch) then
+                  tile_sprite_batch:add(batch_tiles[i].quad, batch_tiles[i].x , batch_tiles[i].y)
+                  rendered_tiles = rendered_tiles + 1
             end
+            --end
       end
+      
+      print(rendered_tiles)
 	-- Finally, draw the sprite batch to the screen.
       love.graphics.draw(tile_sprite_batch)
       
@@ -344,10 +434,10 @@ function love.draw()
             
             --p:display("line")
             protag[1]:draw()
-          end
+      end
       --[[
     for i,v in ipairs(tiles) do
-      v:draw()
+      --v:draw()
 
       --love.graphics.setColor(1, 0, 0)
       
@@ -363,12 +453,12 @@ function love.draw()
          
     end
     ]]--
-  end)
+  --end)
     
     
     
     
-  --cam:detach()
+  cam:detach()
   --debug
   if #protag > 0 then
     debug_statements(protag[1])

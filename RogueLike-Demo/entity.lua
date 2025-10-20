@@ -112,46 +112,7 @@ function Entity:new(x,y,w,h,hp,img,quad_x,quad_y,in_world,group)
   
 end
 
-function love.mousepressed(x, y, button, istouch)
-  if #protag > 0 then
-    if #protag[1].tile_path > 0 then 
-      protag[1].canceled_path = true
-    end
-  end
-  
-end
 
-
-function love.wheelmoved(x, y)
-  
-  if #protag > 0 then
-    --if protag[1].single_tile_input or protag[1].mouse_tile_input then 
-      local temp = {x = camera_zoom_factor}
-      local max_zoom = 10
-      local min_zoom = .05
-      local zoom_dir = 0
-      local zoom_speed = 20
-      if y > 0 then
-        --up
-          camera_zoom_factor = camera_zoom_factor + zoom_speed * protag[1].delta_time
-        
-      elseif y < 0 then
-        --down
-          camera_zoom_factor = camera_zoom_factor - zoom_speed * protag[1].delta_time
-        
-        
-      end
-      --flux.to(, .5, { x = camera_zoom_factor }):ease("circout"):delay(1)
-      camera_zoom_factor = lume.clamp(camera_zoom_factor,min_zoom,max_zoom)
-      
-      --if camera_zoom_factor <= max_zoom and camera_zoom_factor >= min_zoom then
-        --flux.to(temp, 0.2, {x = camera_zoom_factor})
-      --end
-      --cam:zoomTo(temp.x)
-      gam:setScale(temp.x)
-    --end
-  end
-end
 
 function Entity:array2d_to_world(x,y)
   x = (x - 1) * TILESIZE

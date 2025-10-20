@@ -72,10 +72,10 @@ function Player:collide(dt)
 end
 ]]--
 function Player:update(dt)
-  --local mx,my = cam:worldCoords(love.mouse.getPosition())
-  local mx, my = gam:toWorld(love.mouse.getPosition())
-  --cam:lookAt(self.x + self.w/2,self.y + self.h/2)
-  gam:setPosition(self.x + self.w/2,self.y + self.h/2)
+  local mx,my = cam:worldCoords(love.mouse.getPosition())
+  --local mx, my = gam:toWorld(love.mouse.getPosition())
+  cam:lookAt(self.x + self.w/2,self.y + self.h/2)
+  --gam:setPosition(self.x + self.w/2,self.y + self.h/2)
   self.mx = mx 
   
   self.my = my 
