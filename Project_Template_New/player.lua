@@ -399,6 +399,8 @@ function Player:update(dt)
 
       end
       
+
+      
       if self.position.x + self.dimension.x/2 < self.mouse_vector.x then
         self.fx = -1
         
