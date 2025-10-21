@@ -24,6 +24,8 @@ CAM:zoom(CAMERA_ZOOM)
 TILESIZE = 16
 SCREEN_WIDTH = love.graphics.getWidth()
 SCREEN_HEIGHT = love.graphics.getHeight()
+VIRTUAL_WIDTH = SCREEN_WIDTH
+VIRTUAL_HEIGHT = SCREEN_HEIGHT
 LEVEL = map_tiles
 LEVEL_WIDTH = #map_tiles[1]
 LEVEL_HEIGHT = #map_tiles
@@ -400,6 +402,27 @@ function love.update(dt)
 
   -- no need for Gamestate.update(dt)
   
+end
+
+function love.resize(w, h)
+  --Push:resize(w, h)
+  local prev_width, prev_height = SCREEN_WIDTH, SCREEN_HEIGHT
+  SCREEN_WIDTH, SCREEN_HEIGHT = w, h
+  --overall scale change
+  local old_width_scale = (prev_width/VIRTUAL_WIDTH) * VIRTUAL_WIDTH
+  local old_height_scale = (prev_height/VIRTUAL_HEIGHT) * VIRTUAL_HEIGHT
+
+  local cur_width_scale = (SCREEN_WIDTH/VIRTUAL_WIDTH) * VIRTUAL_WIDTH
+  local cur_height_scale = (SCREEN_HEIGHT/VIRTUAL_HEIGHT) * VIRTUAL_HEIGHT
+  
+  local width_inc = (cur_width_scale - old_width_scale)/prev_width + 1
+  local height_inc = (cur_height_scale - old_height_scale)/prev_height + 1
+  print(("Ratio X %f Ratio Y %f"):format(
+                                    width_inc,
+                                    height_inc
+                                  ))
+  CAMERA_ZOOM = CAMERA_ZOOM * ((width_inc + height_inc)/2)
+  CAM:zoomTo(CAMERA_ZOOM)
 end
 
 function love.draw()
