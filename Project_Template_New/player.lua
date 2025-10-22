@@ -501,7 +501,7 @@ function Player:update(dt)
           
         --elseif love.keyboard.isDown('r') then
           --restart
-          --self:reset(map_tiles)
+          --self:reset(map_tiles, 0)
           
         end
       else
@@ -516,7 +516,7 @@ function Player:update(dt)
         
         if love.keyboard.isDown('r') then
           --restart
-          self:reset(map_tiles)
+          self:reset(map_tiles, 0)
           
         end
       end
