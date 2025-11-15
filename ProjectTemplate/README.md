@@ -10,5 +10,5 @@
 * Yonaba's ![pathfinding](https://github.com/Yonaba/Jumper) library.</br>
 
 Also thank's to Jeffrey Thompson's ![blog](https://www.jeffreythompson.org/collision-detection/) on collision detection in helping me write utils.lua, as before it multiple stackoverflow threads had to be visited.</br>
-
+The main difference between this and ProjectTemplateNew is complexity, this is simple project where methods of motion are easily swapped out. While the other has shaders and animations for a player set.
 
