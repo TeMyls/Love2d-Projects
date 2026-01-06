@@ -52,6 +52,17 @@ local r, g, b = love.math.colorFromBytes(172, 170, 189)
 love.graphics.setBackgroundColor(r, g, b)
 love.graphics.setDefaultFilter("nearest", "nearest")
 
+function console_array2d_print(array_2d)
+  for y = 1, #array_2d do
+    local s = ""
+    for x = 1, #array_2d[y] do
+      s = s..tostring(array_2d[y][x]).." "
+    end
+    print(s)
+    
+  end
+end
+
 function menu:draw()
   love.graphics.print("Press Enter to continue\nSpace to Pause in Game",  SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 end
@@ -406,6 +417,9 @@ function game:keypressed(key)
   if key == "space" then
 
     Gamestate.switch(paused)
+  elseif key == "p" then
+    game:display(LEVEL)
+    
   end
 end
 
@@ -446,6 +460,7 @@ function game:keypressed(key)
   end
 
 end
+
 
 function game:draw()
   
