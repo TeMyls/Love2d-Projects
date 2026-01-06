@@ -51,6 +51,19 @@ local player_image_path = "assets/toledo.png"
 
 love.graphics.setDefaultFilter("nearest", "nearest")
 
+
+function console_array2d_print(array_2d)
+  for y = 1, #array_2d do
+    local s = ""
+    for x = 1, #array_2d[y] do
+      s = s..tostring(array_2d[y][x]).." "
+    end
+    print(s)
+    
+  end
+end
+
+
 function menu:draw()
   love.graphics.print("Press Enter to continue\nSpace to Pause in Game",  SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 end
@@ -323,9 +336,11 @@ end
 
 function game:keypressed(key)
   if key == "space" then
-
     Gamestate.switch(paused)
-  end
+  elseif key == "p" then
+    console_array2d_print(LEVEL)
+    print("")
+  end 
 end
 
 function game:load()
