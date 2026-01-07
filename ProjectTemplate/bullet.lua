@@ -37,6 +37,8 @@ function Bullet:update(dt)
         self:follow_target(self.target_position, dt)
     end
 
+    --for enemies that don't exist, but a useful structure nonetheless
+
     for _, v in ipairs(Enemies) do
         if self.owner == "player" then
             if v.name == 'tris' then

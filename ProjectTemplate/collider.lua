@@ -193,10 +193,6 @@ function collider:polygon_point(vertices, px, py)
     --the least amount of vertex a shape can have is 3, a triangle, meaning 3 pairs of x y coords
     local collision = false
     if #vertices >= 6 then
-    
-      --#px, py = self.world_to_screen(px, py, self.world_xyz[2])
-      --px, py = self.screen_xy[0], self.screen_xy[1]
-      --px, py = self.world_xyz[0], self.world_xyz[1]
       
       for i = 1, #vertices, 2  do
           --current and next index
@@ -240,10 +236,6 @@ function collider:polygon_circle(vertices, cx, cy, r)
     local collision = false
     if #vertices >= 6 then
     
-      --#px, py = self.world_to_screen(px, py, self.world_xyz[2])
-      --px, py = self.screen_xy[0], self.screen_xy[1]
-      --px, py = self.world_xyz[0], self.world_xyz[1]
-      
       for i = 1, #vertices, 2  do
         --current and next index
         local cx_ind = i
@@ -281,9 +273,6 @@ function collider:polygon_rectangle(vertices, rx, ry, rw, rh)
     local collision = false
     if #vertices >= 6 then
     
-      --#px, py = self.world_to_screen(px, py, self.world_xyz[2])
-      --px, py = self.screen_xy[0], self.screen_xy[1]
-      --px, py = self.world_xyz[0], self.world_xyz[1]
       
       for i = 1, #vertices, 2  do
         --current and next index
@@ -323,9 +312,7 @@ function collider:polygon_line(vertices, x1, y1, x2, y2)
     local collision = false
     if #vertices >= 6 then
     
-    --#px, py = self.world_to_screen(px, py, self.world_xyz[2])
-    --px, py = self.screen_xy[0], self.screen_xy[1]
-    --px, py = self.world_xyz[0], self.world_xyz[1]
+
     
         for i = 1, #vertices, 2  do
             --current and next index
@@ -363,9 +350,6 @@ function collider:polygon_polygon(vertices, vertices_2)
     local collision = false
     if #vertices >= 6 then
     
-      --#px, py = self.world_to_screen(px, py, self.world_xyz[2])
-      --px, py = self.screen_xy[0], self.screen_xy[1]
-      --px, py = self.world_xyz[0], self.world_xyz[1]
       
       for i = 1, #vertices, 2  do
         --current and next index
