@@ -16,11 +16,11 @@ function Bullet:new(position_table,dimension_table,hp,image_path,quad_x,quad_y,i
     self.target_position = self.position
     self.lifetime = 2
     self.collided = false
-    self.move_speed = 30
+    self.move_speed = 180
     self.owner = ""
     self.r = math.max(dimension_table.w, dimension_table.h)
-    self.move_anim = {t = .07, qx = 0, qy = 3, ot = .07, oqx = 0, oqy = 0, f = 4, name = "move"}
-    self.frame_size = TILESIZE
+
+
     
 end
 
@@ -37,25 +37,35 @@ function Bullet:update(dt)
         self:follow_target(self.target_position, dt)
     end
 
+    --for enemies that don't exist, but a useful structure nonetheless
+
     for _, v in ipairs(Enemies) do
         if self.owner == "player" then
-            
-            if v.state ~= "hurt" and v.state ~= "dying" then
-                if self.collider:polygon_circle(v.hitbox, 
-                                                self.position.x, 
-                                                self.position.y, 
-                                                self.r) then
-                    v.state = "hurt"
-                    v.state_timer = 0.0
-                    v.hp = v.hp - 1
-                    self.lifetime = 0
+            if v.name == 'tris' then
+                if v.state ~= "hurt" and v.state ~= "dying" then
+                    if self.collider:polygon_circle(v.hitbox, 
+                                                    self.position.x, 
+                                                    self.position.y, 
+                                                    self.r) then
+                        v.state = "hurt"
+                        v.state_timer = 0.0
+                        v.hp = v.hp - 1
+                        self.lifetime = 0
+                    end
+                end
+            elseif v.name == 'doppel' then
+                if v.state ~= "hurt" then
+                    if self.collider:polygon_circle(v.hitbox, 
+                                                    self.position.x, 
+                                                    self.position.y, 
+                                                    self.r) then
+                        v.state = "hurt"
+                        v.hp = v.hp - 1
+                        self.lifetime = 0
+                    end
                 end
             end
-   
         end
-    end
-    if self.quad ~= nil then
-        self:animate(dt, self.move_anim, self.quad)
     end
     
 end
@@ -125,8 +135,6 @@ function Bullet:collide(dt)
     self.position.y = futureY
 end
 
-
-
 function Bullet:draw()
     local mode = ""
     if self.owner == "player" then
@@ -134,18 +142,5 @@ function Bullet:draw()
     else
         mode = "fill"
     end
-    --love.graphics.circle(mode, self.position.x, self.position.y, self.r, 5)
-    if self.quad ~= nil then
-        love.graphics.draw(self.img,
-                            self.quad,
-                            self.position.x,
-                            self.position.y,
-                            0, 
-                            1, 
-                            1, 
-                            self.frame_size/2,--self.frame_size,
-                            self.frame_size/2
-                        
-                        )
-    end
+    love.graphics.circle(mode, self.position.x, self.position.y, self.r, 5)
 end
